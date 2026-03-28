@@ -145,4 +145,4 @@ def internal_error(error):
 
 if __name__ == "__main__":
     load_stations()
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=4000, debug=True)

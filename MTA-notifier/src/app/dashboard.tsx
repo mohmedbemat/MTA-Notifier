@@ -3,6 +3,7 @@ import { useLocalSearchParams } from 'expo-router'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { mockResponse } from '../constants/mockData'
+import api from '../constants/api'
 import AlertCard from '../components/AlertCard'
 import StatusBanner from '../components/StatusBanner'
 
@@ -14,10 +15,11 @@ export default function DashboardScreen() {
     const fetchAlerts = async () => {
       try {
         const res = await axios.get(
-          `http://YOUR_FRIENDS_IP:5000/alerts?station=${station}&line=${line}`
+          `${api.ALERTS_ENDPOINT}?station=${station}&line=${line}`
         )
         setData(res.data)
       } catch (err) {
+        console.warn('Failed to fetch alerts, using mock data:', err)
         setData(mockResponse) // fallback to mock if API fails
       }
     }
@@ -25,7 +27,7 @@ export default function DashboardScreen() {
     fetchAlerts()
     const interval = setInterval(fetchAlerts, 30000)
     return () => clearInterval(interval)
-  }, [])
+  }, [station, line])
 
   if (!data) return (
     <View style={styles.loading}>
