@@ -1,0 +1,55 @@
+import { View, Text, ScrollView, StyleSheet } from 'react-native'
+import { useLocalSearchParams } from 'expo-router'
+import { useEffect, useState } from 'react'
+import axios from 'axios'
+import { mockResponse } from '../constants/mockData'
+import AlertCard from '../components/AlertCard'
+import StatusBanner from '../components/StatusBanner'
+
+export default function DashboardScreen() {
+  const { line, station } = useLocalSearchParams()
+  const [data, setData] = useState<any>(null)
+
+  useEffect(() => {
+    const fetchAlerts = async () => {
+      try {
+        const res = await axios.get(
+          `http://YOUR_FRIENDS_IP:5000/alerts?station=${station}&line=${line}`
+        )
+        setData(res.data)
+      } catch (err) {
+        setData(mockResponse) // fallback to mock if API fails
+      }
+    }
+
+    fetchAlerts()
+    const interval = setInterval(fetchAlerts, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  if (!data) return (
+    <View style={styles.loading}>
+      <Text style={{ color: 'white' }}>Loading...</Text>
+    </View>
+  )
+
+  return (
+    <ScrollView style={styles.container}>
+      <Text style={styles.station}>{station}</Text>
+      <Text style={styles.line}>Line {line}</Text>
+      <Text style={styles.updated}>Updated {data.last_updated}</Text>
+      <StatusBanner status={data.status} />
+      {data.alerts.map((alert: any) => (
+        <AlertCard key={alert.id} alert={alert} />
+      ))}
+    </ScrollView>
+  )
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#0a0a0a', padding: 24, paddingTop: 60 },
+  loading: { flex: 1, backgroundColor: '#0a0a0a', justifyContent: 'center', alignItems: 'center' },
+  station: { fontSize: 28, fontWeight: 'bold', color: 'white' },
+  line: { fontSize: 18, color: '#888', marginTop: 4 },
+  updated: { fontSize: 12, color: '#555', marginTop: 4, marginBottom: 20 },
+})
