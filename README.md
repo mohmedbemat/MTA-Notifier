@@ -1,114 +1,88 @@
-# 📚 Study Buddy Tracker
+# 🚆 MTA Notifier – NYC Commute Assistant
 
-A simple, intuitive study tracking app inspired by platforms like LeetCode and GitHub. Track your daily study habits, build streaks, and visualize your consistency over time.
-
----
-
-## 🚀 Overview
-
-Study Buddy Tracker helps users stay consistent with their learning by:
-
-- Logging daily study sessions  
-- Tracking total study time  
-- Maintaining streaks  
-- Visualizing activity through a heatmap (green boxes)  
-- Identifying subjects that may need extra attention  
+A mobile app that **notifies NYC subway riders about train delays, service changes, and disruptions** in real-time, especially for commuters who are often distracted by music, phones, or crowds. The app uses **location-based alerts** and **user preferences** to ensure you never miss an important announcement.
 
 ---
 
-## 🎯 Features
+## **Features**
 
-### ✅ Core Features
-- Add study sessions with:
-  - Subject
-  - Source (class, bootcamp, YouTube, textbook, etc.)
-  - Notes (summary of what was learned)
-  - Time spent studying
-
-- Daily tracking:
-  - Total hours studied per day
-  - Number of sessions per day
-
-- Streak system:
-  - Current streak
-  - Maximum streak
-
-- Activity heatmap:
-  - Visual representation of study consistency
-  - Color intensity based on study time
-
-- Stats dashboard:
-  - Total hours studied
-  - Days active
-  - Max hours in a day
-  - Current streak
-  - Max streak
+### **Core Features (MVP)**
+- Real-time notifications for:
+  - Train delays
+  - Service changes or reroutes
+  - Platform closures
+- Personalized alerts:
+  - Favorite stations (all trains at that station)
+  - Favorite trains (alerts wherever that train runs)
+- Location-aware notifications:
+  - Only alert users when they are near a relevant station
+- Simple and clean UI to display alerts
 
 ---
 
-### 💡 Bonus Feature (In Progress)
-- Tutoring recommendations:
-  - Suggest subjects where users may need help
-  - Based on:
-    - Low study time (neglected subjects)
-    - High repetition (potential difficulty)
+## **Tech Stack**
+
+| Layer      | Technology | Notes |
+|-----------|------------|-------|
+| **Frontend / Mobile** | React Native | Cross-platform app (iOS + Android) |
+| **Backend** | Python + Flask / FastAPI | Fetch real-time MTA GTFS-RT feeds and filter alerts by location |
+| **Database** | SQLite | Store user preferences (favorite stations, favorite trains, device tokens) |
+| **Push Notifications** | Firebase Cloud Messaging | Send location-based alerts to users’ devices |
+| **Data Sources** | MTA GTFS-RT & Static GTFS | Real-time and static subway data, including station coordinates and line schedules |
 
 ---
 
-## 🧱 Tech Stack
+## **Data Flow**
 
-### Backend
-- Python
-- Flask
-
-### Frontend
-- React
-
-### Database
-- SQLite
+1. User installs the app and registers device token with Firebase
+2. User selects favorite stations and/or trains
+3. App tracks user location
+4. Backend checks nearby stations and trains
+5. Fetches real-time alerts from MTA GTFS-RT feed
+6. Sends **push notification** to the user if relevant
 
 ---
 
-## 🗄️ Database Schema
+## **Database Structure**
 
-### `study_sessions`
+**Users**
+- `user_id` (PK)  
+- `name`  
+- `device_token` (for notifications)  
 
-| Column    | Type    | Description                          |
-|----------|--------|--------------------------------------|
-| id       | INTEGER | Primary Key                         |
-| date     | TEXT    | Study date (YYYY-MM-DD)             |
-| subject  | TEXT    | Subject studied                     |
-| source   | TEXT    | Source of learning                  |
-| notes    | TEXT    | Summary of session                  |
-| duration | INTEGER | Time spent (in minutes or hours)    |
+**Stations**
+- `station_id` (PK)  
+- `name`  
+- `lat`, `lon`  
+- `trains` (array of trains at this station)  
 
----
+**Trains**
+- `train_id` (PK, e.g., A, B, 1, 2, 5)  
+- `line_name` (optional)  
 
-## ⚙️ How It Works
-
-1. User logs a study session  
-2. Data is stored in SQLite  
-3. Backend aggregates data by date and subject  
-4. Frontend displays:
-   - Heatmap
-   - Stats
-   - Streaks  
+**UserPreferences**
+- `pref_id` (PK)  
+- `user_id` (FK)  
+- `station_id` (FK, optional)  
+- `train_id` (FK, optional)  
 
 ---
 
-## 🧠 Struggle Detection Logic
+## **How to Run (Hackathon MVP)**
 
-Subjects may be flagged for tutoring if:
-
-- They have **low total study time** (neglected)  
-- OR  
-- They have **high total time + high frequency** (potential difficulty)  
+1. Clone the repository  
+2. Install dependencies for backend and mobile app  
+3. Seed station and train data from MTA static GTFS feed  
+4. Register app with Firebase for push notifications  
+5. Run backend server (Flask/FastAPI)  
+6. Run mobile app (React Native)  
+7. Simulate location near a station to receive a test notification  
 
 ---
 
-## 📦 Installation
+## **Unique Selling Point**
+- **Location-based notifications**: only alert users when they are near the affected station  
+- **Personalized preferences**: favorite stations or trains  
+- **Community and safety-ready**: can expand to include street/sidewalk alerts for safer commutes  
 
-### 1. Clone the repository
-```bash
-git clone https://github.com/your-username/study-buddy-tracker.git
-cd study-buddy-tracker
+---
