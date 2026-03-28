@@ -1,5 +1,3 @@
-"""Main Flask server for MTA Notifier backend."""
-
 from flask import Flask, request, jsonify
 from typing import Optional, List, Dict, Any
 import os
