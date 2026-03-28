@@ -36,7 +36,7 @@ def health_check():
     return jsonify({"status": "healthy"}), 200
 
 
-@app.route("/alerts", methods=["POST"])
+@app.route("/alerts", methods=["GET", "POST"])
 def get_alerts():
     """
     Fetch and filter alerts based on user context.
@@ -58,7 +58,7 @@ def get_alerts():
     }
     """
     try:
-        data = request.get_json() or {}
+        data = request.get_json(silent=True) or {}
         
         # Validate request
         station_id = data.get("station_id")
