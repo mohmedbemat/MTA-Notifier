@@ -7,4 +7,7 @@ export default {
   BACKEND_URL,
   ALERTS_ENDPOINT: `${BACKEND_URL}/alerts`,
   HEALTH_CHECK_ENDPOINT: `${BACKEND_URL}/health`,
+  REGISTER_DEVICE_ENDPOINT: `${BACKEND_URL}/register-device`,
+  UPDATE_DEVICE_PREFERENCES_ENDPOINT: `${BACKEND_URL}/device-preferences`,
+  UNREGISTER_DEVICE_ENDPOINT: `${BACKEND_URL}/unregister-device`,
 }
