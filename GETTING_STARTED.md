@@ -22,7 +22,7 @@
    python3 app/server.py
    ```
 
-   The server will start on `http://localhost:8000`
+   The server will start on `http://localhost:4000`
 
    Or use the startup script:
    ```bash
@@ -31,10 +31,10 @@
 
 ### API Endpoints
 
-- **Health Check**: `GET http://localhost:8000/health`
+- **Health Check**: `GET http://localhost:4000/health`
   - Returns: `{"status": "healthy"}`
 
-- **Get Alerts**: `GET http://localhost:8000/alerts?station=<station>&line=<line>`
+- **Get Alerts**: `GET http://localhost:4000/alerts?station=<station>&line=<line>`
   - Query parameters:
     - `station`: Station name (optional)
     - `line`: Line ID (optional)
@@ -43,14 +43,11 @@
     - `radius_m`: Search radius in meters (optional, default 2000)
   - Returns: Filtered alerts for the given criteria
 
-- **Mock Alerts** (for testing): `GET http://localhost:8000/mock/alerts`
-  - Returns: Sample MTA alerts
-
 ### Configuration
 
 Edit `.env` to configure:
-- `MTA_ALERTS_URL` - MTA API endpoint (default: mock endpoint)
-- `MTA_API_KEY` - API key for MTA (if required)
+- `MTA_ALERTS_URL` - MTA subway alerts endpoint
+- `MTA_API_KEY` - API key for MTA
 - `STATIONS_CSV_PATH` - Path to stations CSV
 
 ## Frontend Setup
@@ -81,7 +78,7 @@ Edit `.env` to configure:
 
 Frontend uses `EXPO_PUBLIC_BACKEND_URL` environment variable:
 ```bash
-EXPO_PUBLIC_BACKEND_URL=http://localhost:8000 npm start
+EXPO_PUBLIC_BACKEND_URL=http://localhost:4000 npm start
 ```
 
 ## Development Workflow
@@ -113,20 +110,17 @@ pytest -q
 ### Manual API Testing
 ```bash
 # Test health check
-curl http://localhost:8000/health
+curl http://localhost:4000/health
 
 # Test alerts endpoint
-curl "http://localhost:8000/alerts?station=Times%20Square-42%20St&line=A"
-
-# Test mock alerts
-curl http://localhost:8000/mock/alerts
+curl "http://localhost:4000/alerts?station=Times%20Square-42%20St&line=A"
 ```
 
 ## Troubleshooting
 
 ### Port Already in Use
-If port 8000 is in use:
-1. Find the process: `lsof -i :8000`
+If port 4000 is in use:
+1. Find the process: `lsof -i :4000`
 2. Kill it: `kill -9 <PID>`
 3. Or modify port in `app/server.py` and `api.ts`
 
@@ -142,9 +136,9 @@ If port 8000 is in use:
 
 To complete the project, consider:
 
-1. **Use Real MTA API**: Replace mock endpoint with actual MTA GTFS-RT feed
+1. **Use Real MTA API**: Configure your production MTA credentials
    - Get API key from MTA
-   - Update `MTA_ALERTS_URL` in `.env`
+   - Ensure `MTA_ALERTS_URL` and `MTA_API_KEY` are set in `.env`
 
 2. **Add Push Notifications**: Implement Firebase Cloud Messaging
    - Register device tokens: `POST /register-device`

@@ -1,47 +1,94 @@
 """MTA API client helpers.
 
-This module provides lightweight functions to fetch alert data from HTTP
-endpoints. It intentionally keeps parsing minimal — the backend should pass
-in the API URL and any auth headers required by MTA or other transit providers.
-
-The code assumes the feed is JSON with a top-level list of alert objects, for
-example:
-
-[
-  {
-    "id": "alert-123",
-    "title": "Delays on Red Line",
-    "description": "Signal problem...",
-    "affected_stations": ["STN_A", "STN_B"],
-    "affected_lines": ["1", "2"],
-    "updated_at": "2026-03-28T12:34:56Z"
-  },
-  ...
-]
-
-If you're using GTFS-RT (protobuf) we can add a GTFS-RT parser later; for
-now this client focuses on JSON endpoints or proxied feeds that return JSON.
+Supports both:
+- JSON alert feeds
+- GTFS-RT protobuf feeds (application/octet-stream), which are used by MTA
+  realtime endpoints like subway alerts.
 """
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 import requests
 
+try:
+    from google.transit import gtfs_realtime_pb2
+except Exception:  # pragma: no cover - guarded in runtime path below
+    gtfs_realtime_pb2 = None
+
+
+def _translations_to_text(translation_obj: Any) -> str:
+    if not translation_obj:
+        return ""
+    translations = getattr(translation_obj, "translation", None)
+    if not translations:
+        return ""
+    for item in translations:
+        text = getattr(item, "text", "")
+        if text:
+            return text
+    return ""
+
+
+def _parse_gtfs_rt_alerts(content: bytes) -> List[Dict[str, Any]]:
+    if gtfs_realtime_pb2 is None:
+        raise RuntimeError(
+            "GTFS-RT protobuf support requires gtfs-realtime-bindings. "
+            "Install dependencies from requirements.txt."
+        )
+
+    feed = gtfs_realtime_pb2.FeedMessage()
+    feed.ParseFromString(content)
+
+    out: List[Dict[str, Any]] = []
+    for entity in feed.entity:
+        if not entity.HasField("alert"):
+            continue
+
+        alert = entity.alert
+        lines: List[str] = []
+        stations: List[str] = []
+
+        for informed in alert.informed_entity:
+            route_id = getattr(informed, "route_id", "")
+            stop_id = getattr(informed, "stop_id", "")
+            if route_id:
+                lines.append(route_id)
+            if stop_id:
+                stations.append(stop_id)
+
+        out.append(
+            {
+                "id": getattr(entity, "id", "unknown") or "unknown",
+                "title": _translations_to_text(getattr(alert, "header_text", None)),
+                "description": _translations_to_text(getattr(alert, "description_text", None)),
+                "affected_lines": list(dict.fromkeys(lines)),
+                "affected_stations": list(dict.fromkeys(stations)),
+                "updated_at": "",
+            }
+        )
+
+    return out
+
 
 def fetch_json_feed(url: str, params: Optional[Dict[str, Any]] = None, headers: Optional[Dict[str, str]] = None, timeout: int = 10) -> List[Dict[str, Any]]:
-    """Fetch a JSON feed of alerts and return a list of alert dicts.
+    """Fetch alerts and return a normalized list of alert dicts.
 
     Args:
-        url: endpoint returning JSON array of alert objects
+        url: endpoint returning either JSON or GTFS-RT protobuf
         params: optional query params
         headers: optional headers (e.g., API key)
         timeout: request timeout in seconds
 
     Returns:
-        list of dicts parsed from JSON. Raises requests.HTTPError on non-2xx.
+        list of dicts parsed from JSON/protobuf. Raises requests.HTTPError on non-2xx.
     """
     resp = requests.get(url, params=params, headers=headers, timeout=timeout)
     resp.raise_for_status()
+
+    content_type = (resp.headers.get("content-type", "") or "").lower()
+    if "application/octet-stream" in content_type or "protobuf" in content_type:
+        return _parse_gtfs_rt_alerts(resp.content)
+
     data = resp.json()
     # normalize: if the feed wraps alerts in an object, try common keys
     if isinstance(data, dict):

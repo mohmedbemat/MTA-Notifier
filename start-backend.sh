@@ -17,5 +17,6 @@ fi
 export PYTHONPATH="$SCRIPT_DIR:$PYTHONPATH"
 
 # Run the server
-echo "Starting MTA Notifier Backend on port 8000..."
+PORT="${PORT:-4000}"
+echo "Starting MTA Notifier Backend on port ${PORT}..."
 python3 app/server.py
