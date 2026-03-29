@@ -1,7 +1,8 @@
-import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet } from 'react-native'
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native'
 import { useState } from 'react'
 import { useRouter } from 'expo-router'
 import { LINES } from '../constants/lines'
+import StationPicker from '../components/StationPicker'
 
 export default function HomeScreen() {
   const [selectedLine, setSelectedLine] = useState<string | null>(null)
@@ -10,7 +11,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🚇 SubwaySync</Text>
+      <Text style={styles.title}>🚇 SubSync</Text>
       <Text style={styles.subtitle}>Never miss an announcement</Text>
 
       <Text style={styles.label}>Select your train line</Text>
@@ -30,14 +31,8 @@ export default function HomeScreen() {
         ))}
       </ScrollView>
 
-      <Text style={styles.label}>Enter your station</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="e.g. 125th St"
-        placeholderTextColor="#555"
-        value={station}
-        onChangeText={setStation}
-      />
+      <Text style={styles.label}>Select your station</Text>
+      <StationPicker value={station} onChange={setStation} />
 
       <TouchableOpacity
         style={[styles.trackButton, (!selectedLine || !station) && styles.trackButtonDisabled]}
@@ -61,7 +56,6 @@ const styles = StyleSheet.create({
   lineButton: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', marginRight: 10 },
   lineButtonSelected: { borderWidth: 3, borderColor: 'white' },
   lineText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
-  input: { backgroundColor: '#1a1a1a', color: 'white', padding: 14, borderRadius: 12, fontSize: 16, marginBottom: 24 },
   trackButton: { backgroundColor: 'white', padding: 16, borderRadius: 12, alignItems: 'center' },
   trackButtonDisabled: { opacity: 0.3 },
   trackButtonText: { fontSize: 18, fontWeight: 'bold', color: 'black' }
